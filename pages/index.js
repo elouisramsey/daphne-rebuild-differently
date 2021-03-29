@@ -1,65 +1,145 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React, { useState, useEffect, useRef } from 'react'
+import ImgComp from '../components/slider/ImgComp'
+import { useKeenSlider } from 'keen-slider/react'
+import 'keen-slider/keen-slider.min.css'
+import composeRefs from '@seznam/compose-react-refs'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
 
-export default function Home() {
+export async function getStaticProps() {
+  const client = require('contentful').createClient({
+    space: process.env.NEXT_PUBLIC_CONTENTFUL_SPACE,
+    accessToken: process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN
+  })
+
+  const data = await client.getEntries({
+    content_type: 'daphne'
+  })
+
+  return {
+    props: {
+      data: data.items
+    }
+  }
+}
+let easing = [0.6, -0.05, 0.01, 0.99]
+
+const stagger = {
+  animate: {
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+}
+
+const fadeInUp = {
+  initial: {
+    y: 60,
+    opacity: 0,
+    transition: { duration: 0.6, ease: easing }
+  },
+  animate: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      ease: easing
+    }
+  }
+}
+
+const Index = ({ data }) => {
+  const ref = useRef(null)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isMounted, setIsMounted] = useState(false)
+
+  const [sliderRef] = useKeenSlider({
+    slidesPerView: 1,
+    centered: true,
+    vertical: true,
+    loop: true,
+    mounted: () => setIsMounted(true),
+    slideChanged(s) {
+      setCurrentSlide(s.details().relativeSlide)
+    }
+  })
+
+  const postVariants = {
+    initial: { scale: 0.96, y: 30, opacity: 0 },
+    enter: {
+      scale: 1,
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5, ease: [0.48, 0.15, 0.25, 0.96] }
+    },
+    exit: {
+      scale: 0.6,
+      y: 100,
+      opacity: 0,
+      transition: { duration: 0.2, ease: [0.48, 0.15, 0.25, 0.96] }
+    }
+  }
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
+    <motion.div>
+      <div
+        className='w-full h-screen flex items-center relative overflow-hidden keen-slider'
+        ref={composeRefs(sliderRef, ref)}
+      >
+        <div
+          className='cursor '
+          style={{ transform: 'translate3d(1066px, -25px, 0px)' }}
+        />
+        {data.map((item, index) => (
+          <motion.section
+            initial='initial'
+            animate='enter'
+            exit='exit'
+            variants={{ exit: { transition: { staggerChildren: 0.1 } } }}
+            ref={ref}
+            key={item.fields.name}
+            className='min-w-full relative h-full keen-slider__slide'
           >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+            <ImgComp src={item.fields.background.fields.file.url} />
 
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+            <nav className='absolute left-1/100 p-4 z-100 grid pb-8 grid-rows-7'>
+              <motion.div
+                layoutId='topic'
+                className={`nav-item grid text-white relative bottom-24 left-8 uppercase
+              font-bold font-Alasar `}
+              >
+                {item.fields.name}
+              </motion.div>
+            </nav>
+            <ul className='capitalize absolute font-sharpsans bottom-12 text-white shades text-base left-48'>
+              {item.fields.shades.map((item, index) => (
+                <motion.li key={item} className='shade' variants={{ fadeInUp }}>
+                  {item}
+                </motion.li>
+              ))}
+            </ul>
+            <motion.h1 className='capitalize absolute font-sharpsans bottom-12 text-white shades text-base right-12'>
+              {index + 1}/{data.length}
+            </motion.h1>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
+            <Link scroll={false} href='/[name]' as={`/${item.fields.name}`}>
+              <a>
+                <motion.div
+                  whileHover='hover'
+                  variants={{ hover: { scale: 1.2 }, fadeInUp }}
+                  className='circle'
+                  transition={{ ease: 'easeOut', duration: 2 }}
+                >
+                  <div className='circle-small' />
+                  <span>Enter</span>
+                </motion.div>
+              </a>
+            </Link>
+          </motion.section>
+        ))}
+      </div>
+    </motion.div>
   )
 }
+
+export default Index

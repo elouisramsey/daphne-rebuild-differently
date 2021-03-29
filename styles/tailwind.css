@@ -1,0 +1,86 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+
+@layer base {
+    @font-face {
+        font-family: Alasar;
+        font-weight: 700;
+        src: url(/fonts/Alasar-Bold.otf) format('otf');
+    }
+
+    @font-face {
+        font-family: sharpsans;
+        font-weight: 400;
+        src: url(/fonts/fonts/samsungsharpsans-medium.woff format('woff');
+    }
+}
+
+body {
+    background-color: #F2F2F2;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+.cursor {
+    pointer-events: none;
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-family: "Sharp-Sans";
+    color: rgb(172, 170, 161);
+}
+
+.nav-item {
+    transform: rotate(180deg);
+    writing-mode: vertical-lr;
+    font-size: clamp(3.5rem, 7vw, 8rem);
+}
+
+.shade {
+    transition: transform 0.5s;
+    transform: translateX(0);
+}
+
+.shade:hover {
+    transform: translateX(10px);
+}
+
+.keen-slider {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.circle {
+    position: absolute;
+    left: 50%;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    bottom: 100px;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+}
+
+
+.circle-small {
+    position: absolute;
+    width: 270px;
+    height: 270px;
+    border-radius: 50%;
+    border: 1.2px solid #ffffff;
+}
+
+@media (min-width: 1500px) {
+    #__next {
+        width: 1500px;
+        margin: 0 auto;
+    }
+}
